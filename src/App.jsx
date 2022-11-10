@@ -3,25 +3,24 @@ import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import MailIcon from '@mui/icons-material/Mail';
 import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { styled, alpha, InputBase, Select, OutlinedInput, MenuItem, Checkbox } from '@mui/material';
+import { styled, alpha, InputBase, Select, OutlinedInput, MenuItem, Checkbox, Chip } from '@mui/material';
 import cadeira from './images/cadeira.webp'
 import mesa from './images/mesa.jpg'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import LogoutIcon from '@mui/icons-material/Logout';
 import SearchIcon from '@mui/icons-material/Search';
 import { AccountCircle } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { MovelCard } from './components/MovelCard/MovelCard';
 import './App.css'
+import { http } from './api/api';
+import { Toaster } from 'react-hot-toast';
 
 const itemsArray = [
   {
@@ -90,6 +89,7 @@ const RSCityList = [
 ]
 
 
+
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
   borderRadius: theme.shape.borderRadius,
@@ -144,8 +144,16 @@ function Filters({ cityFilter, setCityFilter }) {
   return (
     <div>
       <List>
+        <ListItem>
+          <Box sx={{ height: '40px' }}>
+            <Typography variant="h6" noWrap component="div" sx={{ overflow: 'unset' }} >
+              Filtros
+            </Typography>
+          </Box>
+        </ListItem>
+        <Divider />
         <ListItem sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
-          <Typography variant="h6" noWrap component="div" sx={{ overflow: 'unset' }} >
+          <Typography variant="subtitle2" noWrap component="div" sx={{ overflow: 'unset', mb: 1 }} >
             Cidade
           </Typography>
           <Select
@@ -155,9 +163,17 @@ function Filters({ cityFilter, setCityFilter }) {
             multiple
             value={cityFilter}
             onChange={handleChangeCity}
-            input={<OutlinedInput label="Tag" />}
-            renderValue={(selected) => selected.join(', ')}
-          // MenuProps={MenuProps}
+            input={<OutlinedInput className='filter-city' label="Tag" sx={{ display: 'flex', '.filter-city > .MuiSelect-select': { display: 'flex' } }} />}
+            renderValue={(selected) => {
+              console.log(selected)
+              return selected.map(city => <Box>
+                <Chip sx={{ mt: 1 }} label={
+                  <Typography variant="body2" color="text.secondary" align="right" sx={{ fontWeight: 'bold' }} >
+                    {city}
+                  </Typography>
+                } />
+              </Box>)
+            }}
           >
             {RSCityList.map((city) => (
               <MenuItem key={city} value={city}>
@@ -178,115 +194,142 @@ const drawerWidth = 300;
 
 function App(props) {
   const { window } = props;
+  const { getDonations } = http()
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [cityFilter, setCityFilter] = useState(RSCityList);
-  console.log(cityFilter)
+  const [items, setItems] = useState([]);
+
+
+  useEffect(() => {
+    fetchDonations()
+  }, [])
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
+  async function fetchDonations() {
+    const response = await getDonations()
+
+    setItems(response.data)
+  }
+
 
   const container = window !== undefined ? () => window().document.body : undefined;
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      {/* <CssBaseline /> */}
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-        }}
-      >
-        <Toolbar
-          size="large"
-          edge="start"
-          color="inherit"
-          aria-label="menu"
-          sx={{ mr: 2 }}>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
+    <>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+      />
+      <Box sx={{ display: 'flex' }}>
+        {/* <CssBaseline /> */}
+        <AppBar
+          position="fixed"
+          sx={{
+            width: { sm: `calc(100% - ${drawerWidth}px)` },
+            ml: { sm: `${drawerWidth}px` },
+          }}
+        >
+          <Toolbar
+            size="large"
             edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ overflow: 'unset' }} >
-            Móveis dus guri
-          </Typography>
-          <Search>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Pesquisar..."
-              inputProps={{ 'aria-label': 'search' }}
-            />
-          </Search>
-          <Link to={'/profile'} style={{ textDecoration: 'none', color: 'white' }}>
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}>
             <IconButton
               color="inherit"
-              edge="end"
-              size='large'
+              aria-label="open drawer"
+              edge="start"
               onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { sm: 'none' } }}
             >
-              <AccountCircle />
+              <MenuIcon />
             </IconButton>
-          </Link>
-        </Toolbar>
-      </AppBar>
-      <Box
-        flex
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-        aria-label="mailbox folders"
-      >
-        <Drawer
-          container={container}
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
-          sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-          }}
+            <Typography variant="h6" noWrap component="div" sx={{ overflow: 'unset' }} >
+              Móveis dus guri
+            </Typography>
+            <Search>
+              <SearchIconWrapper>
+                <SearchIcon />
+              </SearchIconWrapper>
+              <StyledInputBase
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Pesquisar..."
+                inputProps={{ 'aria-label': 'search' }}
+              />
+            </Search>
+            <Link to='/profile' style={{ textDecoration: 'none', color: 'white' }}>
+              <IconButton
+                color="inherit"
+                edge="end"
+                size='large'
+                onClick={handleDrawerToggle}
+              >
+                <AccountCircle />
+              </IconButton>
+            </Link>
+            <Link to='/' style={{ textDecoration: 'none', color: 'white' }}>
+              <IconButton
+                color="inherit"
+                edge="end"
+                size='large'
+                onClick={handleDrawerToggle}
+              >
+                <LogoutIcon />
+              </IconButton>
+            </Link>
+          </Toolbar>
+        </AppBar>
+        <Box
+          flex
+          component="nav"
+          sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+          aria-label="mailbox folders"
         >
-          <Filters cityFilter={cityFilter} setCityFilter={setCityFilter} />
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-          }}
-          open
+          <Drawer
+            container={container}
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{
+              keepMounted: true, // Better open performance on mobile.
+            }}
+            sx={{
+              display: { xs: 'block', sm: 'none' },
+              '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            }}
+          >
+            <Filters cityFilter={cityFilter} setCityFilter={setCityFilter} />
+          </Drawer>
+          <Drawer
+            variant="permanent"
+            sx={{
+              display: { xs: 'none', sm: 'block' },
+              '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            }}
+            open
+          >
+            <Filters cityFilter={cityFilter} setCityFilter={setCityFilter} />
+          </Drawer>
+        </Box>
+        <Box
+          component="main"
+          sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` }, height: '100vh', backgroundColor: '#f3f3f3' }}
         >
-          <Filters cityFilter={cityFilter} setCityFilter={setCityFilter} />
-        </Drawer>
+          <Toolbar />
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-evenly' }}>
+            {items.filter(item => {
+              return item.titulo.toLowerCase().includes(search)
+              // && cityFilter.includes(item.city)
+            }).map(item => <MovelCard item={item} withAction />)}
+          </div>
+        </Box>
       </Box>
-      <Box
-        component="main"
-        sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` }, backgroundColor: '#f3f3f3' }}
-      >
-        <Toolbar />
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-evenly' }}>
-          {itemsArray.filter(item => {
-            console.log(cityFilter)
-            console.log(item.name)
-            return item.name.toLowerCase().includes(search) && cityFilter.includes(item.city)
-          }).map(item => <MovelCard item={item} />)}
-        </div>
-      </Box>
-    </Box>
+    </>
   );
 }
 

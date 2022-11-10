@@ -1,21 +1,44 @@
-import { AppBar, Box, Button, Card, CardActionArea, CardContent, CardMedia, Divider, IconButton, TextField, Toolbar, Typography } from "@mui/material"
+import { AppBar, Box, Button, Card, CardActionArea, CardContent, CardMedia, Chip, Divider, IconButton, TextField, Toolbar, Typography } from "@mui/material"
 import { Link, useLocation } from "react-router-dom"
 import SearchIcon from '@mui/icons-material/Search';
 import { AccountCircle } from "@mui/icons-material";
 import Carousel from 'react-material-ui-carousel'
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { http } from "../../api/api";
 
 const drawerWidth = 240;
 
 export function Detail() {
+  const { postRequisicao } = http()
   const location = useLocation()
-  const { props: { name, images, city, uf, description } } = location.state
+  const { props: { titulo, descricao } } = location.state
   const [form, setForm] = useState({
     nome: '',
     email: '',
     telefone: '',
-    mensagem: 'Olá, tenho interesse no veículo. Por favor entre em contato.'
+    mensagem: 'Olá, tenho interesse no móvel. Por favor entre em contato.'
   })
+
+  // useEffect(() => {
+  //   fetchRequisicao()
+  // }, [])
+
+  async function fetchRequisicao() {
+    try {
+      const bodyRequisicao = {
+        "doacaoId": "ac1e4d43-f247-463a-a091-e1fb4330b439",
+        "status": 1,
+        "nomeRequisitante": "Alfredo",
+        "emailRequisitante": "alfredo@gmail.com.br",
+        "telefoneRequisitante": "392849349"
+      }
+      const response = await postRequisicao(bodyRequisicao)
+      console.log(response)
+    } catch (error) {
+
+    }
+  }
+
 
   function handleFormChange({ target: { value, name } }) {
     setForm({ ...form, [name]: value })
@@ -61,7 +84,7 @@ export function Detail() {
         <div style={{ display: 'flex' }}>
           <Card sx={{ width: '100%', margin: 2 }}>
             <Carousel sx={{ margin: 5 }} navButtonsAlwaysVisible animation="slide">
-              {images.map(image => <CardMedia
+              {[].map(image => <CardMedia
                 component="img"
                 height="250"
                 src={image}
@@ -78,25 +101,29 @@ export function Detail() {
             <Divider />
             <CardContent>
               <Typography gutterBottom variant="h5" component="div">
-                {name}
+                {titulo}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {description}
+                {descricao}
               </Typography>
-              <Typography variant="body2" color="text.secondary" align="right" sx={{ fontWeight: 'bold' }}>
-                {`${city} - ${uf}`}
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Chip sx={{ mt: 1, ml: 'auto' }} label={
+                  <Typography variant="body2" color="text.secondary" align="right" sx={{ fontWeight: 'bold' }} >
+                    {`${'city'} - ${'uf'}`}
+                  </Typography>
+                } />
+              </Box>
             </CardContent>
           </Card>
           <Card sx={{ width: '50%', margin: 2, padding: 2, display: 'flex', justifyContent: 'space-evenly', flexDirection: 'column', alignItems: 'center' }}>
             <Typography gutterBottom variant="h5" component="div">
               Entre em contato com o doador!
             </Typography>
-            <TextField label="Nome" name='nome' value={form.nome} onChange={handleFormChange} variant="outlined" />
-            <TextField label="email" name='email' value={form.email} onChange={handleFormChange} variant="outlined" />
-            <TextField label="telefone" name='telefone' value={form.telefone} onChange={handleFormChange} variant="outlined" />
-            <TextField label="Mensagem" name='mensagem' value={form.mensagem} onChange={handleFormChange} variant="outlined" multiline rows={4} />
-            <Button variant="contained">
+            <TextField label="Nome" name='nome' value={form.nome} onChange={handleFormChange} variant="outlined" sx={{ width: '100%' }} />
+            <TextField label="email" name='email' value={form.email} onChange={handleFormChange} variant="outlined" sx={{ width: '100%' }} />
+            <TextField label="telefone" name='telefone' value={form.telefone} onChange={handleFormChange} variant="outlined" sx={{ width: '100%' }} />
+            <TextField label="Mensagem" name='mensagem' value={form.mensagem} onChange={handleFormChange} variant="outlined" multiline rows={4} sx={{ width: '100%' }} />
+            <Button onClick={fetchRequisicao} variant="contained" sx={{ width: '100%' }}>
               Enviar Mensagem
             </Button>
           </Card>

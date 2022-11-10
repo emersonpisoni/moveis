@@ -1,112 +1,148 @@
 import * as React from 'react';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import MuiDrawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
+import cadeira from '../../images/cadeira.webp'
+import mesa from '../../images/mesa.jpg'
 import Paper from '@mui/material/Paper';
-import Link from '@mui/material/Link';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-// import { mainListItems, secondaryListItems } from './listItems';
-// import Chart from './Chart';
-// import Deposits from './Deposits';
-// import Orders from './Orders';
+import { MovelCard } from '../../components/MovelCard/MovelCard';
+import { Button, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { useState } from 'react';
+import { http } from '../../api/api';
+import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 
-const drawerWidth = 240;
+export function Profile() {
+  const { getUserById, getDonationByUser, postDonation, getCategories, getStatus, getConservations, getItens } = http()
 
-const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: (prop) => prop !== 'open',
-})(({ theme, open }) => ({
-  zIndex: theme.zIndex.drawer + 1,
-  transition: theme.transitions.create(['width', 'margin'], {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  ...(open && {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  }),
-}));
+  const [movel, setMovel] = useState({})
+  const [showCreateDonation, setShowCreateDonation] = useState(false)
+  const [images, setImages] = useState([])
+  const [user, setUser] = useState({})
+  const [donations, setDonations] = useState([])
+  const [categories, setCategories] = useState([])
+  const [status, setStatus] = useState([])
+  const [conservations, setConservations] = useState([])
+  const [categoryItens, setCategoryItens] = useState([])
 
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    '& .MuiDrawer-paper': {
-      position: 'relative',
-      whiteSpace: 'nowrap',
-      width: drawerWidth,
-      transition: theme.transitions.create('width', {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      boxSizing: 'border-box',
-      ...(!open && {
-        overflowX: 'hidden',
-        transition: theme.transitions.create('width', {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.leavingScreen,
-        }),
-        width: theme.spacing(7),
-        [theme.breakpoints.up('sm')]: {
-          width: theme.spacing(9),
-        },
-      }),
-    },
-  }),
-);
+  useEffect(() => {
+    fetchUser()
+    fetchDonation()
+    fetchCategories()
+    fetchStatus()
+    fetchConvervations()
+    fetchCategoryItens()
+  }, [])
 
-const mdTheme = createTheme();
+  async function fetchUser() {
+    try {
+      const response = await getUserById()
+      console.log(response)
+      setUser(response.data)
+    } catch (error) {
 
-function DashboardContent() {
-  const [open, setOpen] = React.useState(true);
-  const toggleDrawer = () => {
-    setOpen(!open);
-  };
+    }
+  }
+
+  async function fetchDonation() {
+    try {
+      const response = await getDonationByUser()
+      console.log(response)
+      setDonations(response.data)
+    } catch (error) {
+
+    }
+  }
+
+  async function fetchCategories() {
+    try {
+      const response = await getCategories()
+      setCategories(response.data)
+    } catch (error) { }
+  }
+
+  async function fetchStatus() {
+    try {
+      const response = await getStatus()
+      setStatus(response.data)
+    } catch (error) { }
+  }
+
+  async function fetchConvervations() {
+    try {
+      const response = await getConservations()
+      setConservations(response.data)
+    } catch (error) { }
+  }
+
+  async function fetchCategoryItens() {
+    try {
+      const response = await getItens()
+      setCategoryItens(response.data)
+    } catch (error) { }
+  }
+
+  async function fetchPostDonation() {
+    try {
+      await postDonation({
+        ...movel,
+        categoriaId: JSON.parse(movel.categoria).categoriaId,
+        status: JSON.parse(movel.status).statusId,
+        conservacaoId: JSON.parse(movel.conservacao).conservacaoId,
+        itemId: JSON.parse(movel.item).itemId,
+      })
+      setShowCreateDonation(false)
+      fetchDonation()
+    } catch (error) {
+
+    }
+  }
+
+  const onImageChange = (event) => {
+    if (event.target.files.length > 0) {
+      const formData = new FormData()
+      const images = Object.values(event.target.files).map(file => {
+        formData.append('image', file)
+
+        return formData
+      })
+      setImages(formData.getAll('image'));
+    }
+  }
+
+  function handleChange({ target }) {
+    setMovel({ ...movel, [target.name]: target.value })
+  }
 
   return (
     <ThemeProvider theme={mdTheme}>
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
-        <AppBar position="absolute" open={open}>
+        <AppBar position="absolute">
           <Toolbar
             sx={{
               pr: '24px', // keep right padding when drawer closed
+              display: 'flex',
+              justifyContent: 'space-between'
             }}
           >
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="open drawer"
-              onClick={toggleDrawer}
-              sx={{
-                marginRight: '36px',
-                ...(open && { display: 'none' }),
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography
-              component="h1"
-              variant="h6"
-              color="inherit"
-              noWrap
-              sx={{ flexGrow: 1 }}
-            >
-              Perfil
-            </Typography>
+            <Link to={'/app'} style={{ textDecoration: 'none', color: 'white' }}>
+              <Typography
+                component="h1"
+                variant="h6"
+                color="inherit"
+                noWrap
+                sx={{ flexGrow: 1 }}
+              >
+                Perfil
+              </Typography>
+            </Link>
             <IconButton color="inherit">
               <Badge badgeContent={4} color="secondary">
                 <NotificationsIcon />
@@ -114,26 +150,6 @@ function DashboardContent() {
             </IconButton>
           </Toolbar>
         </AppBar>
-        <Drawer variant="permanent" open={open}>
-          <Toolbar
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              px: [1],
-            }}
-          >
-            <IconButton onClick={toggleDrawer}>
-              <ChevronLeftIcon />
-            </IconButton>
-          </Toolbar>
-          <Divider />
-          <List component="nav">
-            {/* {mainListItems} */}
-            <Divider sx={{ my: 1 }} />
-            {/* {secondaryListItems} */}
-          </List>
-        </Drawer>
         <Box
           component="main"
           sx={{
@@ -147,48 +163,176 @@ function DashboardContent() {
           }}
         >
           <Toolbar />
-          <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-            <Grid container spacing={3}>
-              {/* Chart */}
-              <Grid item xs={12} md={8} lg={9}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: 240,
-                  }}
-                >
-                  {/* <Chart /> */}
-                </Paper>
-              </Grid>
-              {/* Recent Deposits */}
-              <Grid item xs={12} md={4} lg={3}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: 240,
-                  }}
-                >
-                  {/* <Deposits /> */}
-                </Paper>
-              </Grid>
-              {/* Recent Orders */}
-              <Grid item xs={12}>
-                <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                  {/* <Orders /> */}
-                </Paper>
-              </Grid>
-            </Grid>
-          </Container>
+          <Box sx={{ mt: 4, mb: 4, ml: 4, display: 'flex' }}>
+            <Paper
+              sx={{
+                p: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                mr: 4,
+                width: '100%',
+                height: 'calc(100vh - 130px)',
+                overflow: 'auto',
+                position: 'relative'
+              }}
+            >
+              <Typography variant="h6" noWrap component="div" >
+                Meus anúncios
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                {donations.map(item => <MovelCard item={item} />)}
+              </Box>
+              <Button onClick={() => setShowCreateDonation(true)} variant='contained' sx={{ position: 'absolute', top: 10, right: 10 }}>
+                + Criar Anúncio
+              </Button>
+            </Paper>
+            <Paper
+              sx={{
+                p: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                minWidth: '400px',
+                mr: 4
+              }}
+            >
+              <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 'bold', m: 1 }}>
+                Nome: {user.nome}
+              </Typography>
+              <Typography variant="body2" noWrap component="div" sx={{ fontWeight: 'bold', m: 1 }}>
+                Email: {user.email}
+              </Typography>
+              <Typography variant="body2" noWrap component="div" sx={{ fontWeight: 'bold', m: 1 }}>
+                Telefone: {user.telefone}
+              </Typography>
+              <Typography variant="body2" noWrap component="div" sx={{ fontWeight: 'bold', m: 1 }}>
+                {/* {`${user.city} - ${user.uf}`} */}
+              </Typography>
+            </Paper>
+          </Box>
         </Box>
+        {showCreateDonation &&
+          <Box sx={{ position: 'fixed', width: '100%', height: '100vh', backgroundColor: '#00000085', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Paper sx={{ padding: '20px', position: 'relative' }}>
+              <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 'bold', m: 1 }}>
+                Criar Doação
+              </Typography>
+              <TextField
+                value={movel.titulo}
+                onChange={handleChange}
+                margin="normal"
+                required
+                fullWidth
+                id="movel-titulo"
+                label="Título"
+                name="titulo"
+                autoComplete="titulo"
+                autoFocus
+              />
+              <TextField
+                multiline
+                minRows={3}
+                value={movel.descricao}
+                onChange={handleChange}
+                margin="normal"
+                required
+                fullWidth
+                id="movel-descricao"
+                label="Descrição"
+                name="descricao"
+                autoComplete="descricao"
+              />
+              <TextField
+                select
+                sx={{ width: '100%' }}
+                labelId="categoria"
+                id="categoria"
+                value={movel.categoria || ''}
+                label="Categoria"
+                name='categoria'
+                onChange={handleChange}
+                required
+              >
+                {categories.map(category => <MenuItem key={category.nome} value={JSON.stringify(category)}>{category.nome}</MenuItem>)}
+              </TextField>
+              <TextField
+                select
+                sx={{ width: '100%', mt: 1 }}
+                id="item"
+                value={movel.categoria || ''}
+                label="Item"
+                name='item'
+                onChange={handleChange}
+                required
+              >
+                {categoryItens.map(item => <MenuItem key={item.nome} value={JSON.stringify(item)}>{item.nome}</MenuItem>)}
+              </TextField>
+              <TextField
+                select
+                sx={{ width: '100%', mt: 1 }}
+                labelId="status"
+                id="status"
+                value={movel.status || ''}
+                label="Status"
+                name='status'
+                onChange={handleChange}
+                required
+              >
+                {status.map(status => <MenuItem key={status.nome} value={JSON.stringify(status)}>{status.nome}</MenuItem>)}
+              </TextField>
+              <TextField
+                select
+                sx={{ width: '100%', mt: 1 }}
+                labelId="conservacao"
+                id="conservacao"
+                value={movel.conservacao || ''}
+                label="Conservação"
+                name='conservacao'
+                onChange={handleChange}
+                required
+              >
+                {conservations.map(conservation => <MenuItem key={conservation.nome} value={JSON.stringify(conservation)}>{conservation.nome}</MenuItem>)}
+              </TextField>
+              <Box>
+                <div>
+                  <input type="file" onChange={onImageChange} className="filetype" multiple='multiple' />
+                  {images.map(image => {
+                    return (
+                      <img style={{ width: '100px', height: '100px' }} src={URL.createObjectURL(image)} alt="preview" />
+                    )
+                  })}
+                </div>
+              </Box>
+              <Button onClick={() => setShowCreateDonation(false)} variant='contained' sx={{ position: 'absolute', top: -10, right: -10, minWidth: 20, height: 20, padding: 2, backgroundColor: 'red' }}>
+                X
+              </Button>
+              <Button onClick={fetchPostDonation} variant='contained' sx={{ width: '100%', mt: '10px' }}>
+                Criar
+              </Button>
+            </Paper>
+          </Box>}
       </Box>
     </ThemeProvider>
   );
 }
 
-export function Profile() {
-  return <DashboardContent />;
-}
+const drawerWidth = 240;
+
+const AppBar = styled(MuiAppBar, {
+  shouldForwardProp: (prop) => prop !== 'open',
+})(({ theme, open }) => ({
+  zIndex: theme.zIndex.drawer + 1,
+  transition: theme.transitions.create(['width', 'margin'], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  ...(open && {
+    marginLeft: drawerWidth,
+    width: `calc(100%)`,
+    transition: theme.transitions.create(['width', 'margin'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+  }),
+}));
+
+const mdTheme = createTheme();

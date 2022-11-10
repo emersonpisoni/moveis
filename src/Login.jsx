@@ -74,7 +74,7 @@ export function Login() {
               id="password"
               autoComplete="current-password"
             />
-            <Link to={'/app'}>
+            <Link to='/app'>
               <Button
                 type="submit"
                 fullWidth
@@ -84,6 +84,9 @@ export function Login() {
                 Logar
               </Button>
             </Link>
+            <Box>
+              Se ainda não possui uma conta <Link preventScrollReset to='/register'>Registre-se</Link>
+            </Box>
           </Box>
         </Box>
         <Copyright sx={{ mt: 8, mb: 4 }} />
