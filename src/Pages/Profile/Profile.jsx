@@ -14,7 +14,7 @@ import mesa from '../../images/mesa.jpg'
 import Paper from '@mui/material/Paper';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { MovelCard } from '../../components/MovelCard/MovelCard';
-import { Button, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { Button, InputLabel, MenuItem, Pagination, Select, TextField } from '@mui/material';
 import { useState } from 'react';
 import { cities, http } from '../../api/api';
 import { Link, useNavigate } from 'react-router-dom';
@@ -40,6 +40,7 @@ export function Profile() {
   const [categoryItens, setCategoryItens] = useState([])
   const [requisitions, setRequisitions] = useState([])
   const [openRequisitions, setOpenRequisitions] = useState(false)
+  const [pagination, setPagination] = useState();
 
   useEffect(() => {
     fetchUser()
@@ -62,12 +63,17 @@ export function Profile() {
     setLoading(false)
   }
 
-  async function fetchDonation() {
+  async function fetchDonation(page) {
     setLoading(true)
     try {
       await getRequisicao()
-      const response = await getDonationByUser()
-      setDonations(response.data.map(item => ({ ...item.doacao, imagens: item.imagens, requisicoes: item.requisicoes })))
+      const { data } = await getDonationByUser(page)
+      setDonations(data.content.map(item => ({ ...item.doacao, imagens: item.imagens, requisicoes: item.requisicoes })))
+      setPagination({
+        pages: data.totalPages,
+        size: data.size,
+        currentPage: page
+      })
     } catch (error) {
 
     }
@@ -152,6 +158,10 @@ export function Profile() {
     navigate('login')
   }
 
+  function onHandlePagination(e, page) {
+    fetchDonation(page)
+  }
+
   return (
     <ThemeProvider theme={mdTheme}>
       {loading && <Loader />}
@@ -227,6 +237,9 @@ export function Profile() {
               <Button onClick={() => setShowCreateDonation(true)} variant='contained' sx={{ position: 'absolute', top: 10, right: 10 }}>
                 + Criar Anúncio
               </Button>
+              <Box sx={{ width: 'calc(100%)', display: 'flex', justifyContent: 'center', padding: '20px 0', backgroundColor: '#1976d2', position: 'fixed', bottom: 0, left: 0 }}>
+                <Pagination count={pagination?.pages} variant="outlined" onChange={onHandlePagination} />
+              </Box>
             </Paper>
             <Paper
               sx={{
@@ -324,7 +337,6 @@ export function Profile() {
                 Criar Doação
               </Typography>
               <Box sx={{ display: 'flex', width: '800px' }}>
-
                 <Box sx={{ m: '3px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: '100%' }}>
                   <TextField
                     value={movel.titulo}
@@ -460,8 +472,6 @@ export function Profile() {
                   </Box>
                 </Box>
               </Box>
-
-
               <Button onClick={() => setShowCreateDonation(false)} variant='contained' sx={{ position: 'absolute', top: -10, right: -10, minWidth: 20, height: 20, padding: 2, backgroundColor: 'red' }}>
                 X
               </Button>

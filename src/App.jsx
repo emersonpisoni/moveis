@@ -9,7 +9,7 @@ import ListItemText from '@mui/material/ListItemText';
 import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { styled, alpha, InputBase, Select, OutlinedInput, MenuItem, Checkbox, Chip } from '@mui/material';
+import { styled, alpha, InputBase, Select, OutlinedInput, MenuItem, Checkbox, Chip, Pagination } from '@mui/material';
 import cadeira from './images/cadeira.webp'
 import mesa from './images/mesa.jpg'
 import { useEffect, useState } from 'react';
@@ -137,10 +137,11 @@ function App(props) {
   const [cityFilter, setCityFilter] = useState([]);
   const [allCities, setAllCities] = useState([]);
   const [items, setItems] = useState([]);
+  const [pagination, setPagination] = useState();
 
 
   useEffect(() => {
-    fetchDonations()
+    fetchDonations(0)
   }, [])
 
   const handleDrawerToggle = () => {
@@ -152,17 +153,26 @@ function App(props) {
     navigate('login')
   }
 
-  async function fetchDonations() {
+  async function fetchDonations(page) {
     setLoading(true)
-    const response = await getDonations()
+    const { data } = await getDonations(page)
 
-    setItems(response.data.content.map(item => ({ ...item.doacao, imagens: item.imagens })))
-    setAllCities([...new Set(response.data.content.map(item => item.doacao.cidade))])
-    setCityFilter([...new Set(response.data.content.map(item => item.doacao.cidade))])
+    setItems(data.content.map(item => ({ ...item.doacao, imagens: item.imagens })))
+    setAllCities([...new Set(data.content.map(item => item.doacao.cidade))])
+    setCityFilter([...new Set(data.content.map(item => item.doacao.cidade))])
     setLoading(false)
+    setPagination({
+      pages: data.totalPages,
+      size: data.size,
+      currentPage: page
+    })
   }
 
   const container = window !== undefined ? () => window().document.body : undefined;
+
+  function onHandlePagination(e, page) {
+    fetchDonations(page)
+  }
 
   return (
     <>
@@ -268,16 +278,19 @@ function App(props) {
         </Box>
         <Box
           component="main"
-          sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` }, height: '100vh', backgroundColor: '#f3f3f3' }}
+          sx={{ flexGrow: 1, width: { sm: `calc(100% - ${drawerWidth}px)` }, height: '100vh', backgroundColor: '#f3f3f3' }}
         >
           <Toolbar />
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-evenly' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-evenly', backgroundColor: '#f3f3f3' }}>
             {items.filter(item => {
               console.log(item);
               return item?.titulo?.toLowerCase().includes(search) && cityFilter.includes(item.cidade)
               // && cityFilter.includes(item.city)
             }).map(item => <MovelCard item={item} withAction />)}
           </div>
+          <Box sx={{ width: `calc(100% - ${drawerWidth}px)`, display: 'flex', justifyContent: 'center', padding: '20px 0', backgroundColor: '#1976d2', position: 'fixed', bottom: 0 }}>
+            <Pagination count={pagination?.pages} onChange={onHandlePagination} />
+          </Box>
         </Box>
       </Box>
     </>

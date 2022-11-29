@@ -5779,16 +5779,16 @@ export function http() {
     return await axios.get(`${base_url}/imagem/doacao/3c2ae79a-6a90-4f4c-af39-537f99b2e875`)
   }
 
-  async function getDonations() {
-    return await axios.get(`${base_url}/doacao?pageNumber=2`)
+  async function getDonations(page) {
+    return await axios.get(`${base_url}/doacao?page=${page - 1}&size=12`)
   }
 
   async function getUserById() {
     return await axios.get(`${base_url}/pessoa/${userId}`)
   }
 
-  async function getDonationByUser() {
-    return await axios.get(`${base_url}/doacao/pessoa/${userId}`)
+  async function getDonationByUser(page) {
+    return await axios.get(`${base_url}/doacao/pessoa/${userId}?page=${page - 1}&size=12`)
   }
 
   async function getRequisicao() {

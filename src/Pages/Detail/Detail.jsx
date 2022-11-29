@@ -88,26 +88,28 @@ export function Detail() {
           <Link to={'/'} style={{ textDecoration: 'none', color: 'white' }}>
             <img src={Logo} alt='logo detail' style={{ width: '200px' }} />
           </Link>
-          {localStorage.getItem('userId') && <> <Link to='/profile' style={{ textDecoration: 'none', color: 'white' }}>
-            <IconButton
-              color="inherit"
-              edge="end"
-              size='large'
-            >
-              <AccountCircle />
-            </IconButton>
-          </Link>
-            <Link to='/login' style={{ textDecoration: 'none', color: 'white' }}>
-              <IconButton
-                color="inherit"
-                edge="end"
-                size='large'
-                onClick={logout}
-              >
-                <LogoutIcon />
-              </IconButton>
-            </Link>
-          </>}
+          {localStorage.getItem('userId') &&
+            <Box>
+              <Link to='/profile' style={{ textDecoration: 'none', color: 'white' }}>
+                <IconButton
+                  color="inherit"
+                  edge="end"
+                  size='large'
+                >
+                  <AccountCircle />
+                </IconButton>
+              </Link>
+              <Link to='/login' style={{ textDecoration: 'none', color: 'white' }}>
+                <IconButton
+                  color="inherit"
+                  edge="end"
+                  size='large'
+                  onClick={logout}
+                >
+                  <LogoutIcon />
+                </IconButton>
+              </Link>
+            </Box>}
         </Toolbar>
       </AppBar>
       <Box
