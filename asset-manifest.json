@@ -1,14 +1,14 @@
 {
   "files": {
-    "main.css": "/moveis/static/css/main.b6702e73.css",
-    "main.js": "/moveis/static/js/main.c8c5b13a.js",
+    "main.css": "/moveis/static/css/main.9f708d93.css",
+    "main.js": "/moveis/static/js/main.1551ac97.js",
     "static/media/cadeira.webp": "/moveis/static/media/cadeira.fa7a56b329ccc7f03d6b.webp",
     "index.html": "/moveis/index.html",
-    "main.b6702e73.css.map": "/moveis/static/css/main.b6702e73.css.map",
-    "main.c8c5b13a.js.map": "/moveis/static/js/main.c8c5b13a.js.map"
+    "main.9f708d93.css.map": "/moveis/static/css/main.9f708d93.css.map",
+    "main.1551ac97.js.map": "/moveis/static/js/main.1551ac97.js.map"
   },
   "entrypoints": [
-    "static/css/main.b6702e73.css",
-    "static/js/main.c8c5b13a.js"
+    "static/css/main.9f708d93.css",
+    "static/js/main.1551ac97.js"
   ]
 }
