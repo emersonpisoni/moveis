@@ -1,19 +1,24 @@
 import { Box, Card, CardActionArea, CardContent, CardMedia, Chip, Divider, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 
-export function MovelCard({ item: { titulo, descricao }, withAction, user }) {
+export function MovelCard({ item: { titulo, descricao, imagens = [], id, requisicoes, cidade, estado }, withAction, requisitionsCallback, user }) {
   return (
     <Link
-      to={'/detail'}
-      state={{ props: { titulo, descricao, user } }}
-      style={{ textDecoration: 'none', pointerEvents: !withAction && 'none' }}
+      to={withAction ? '/detail' : '#'}
+
+      state={{ props: { titulo, descricao, user, imagens, id, requisicoes, cidade, estado } }}
+      style={{ textDecoration: 'none', position: 'relative' }}
     >
-      <Card sx={{ width: 300, margin: 2 }}>
+      <Card
+        onClick={() => requisitionsCallback(requisicoes)}
+        sx={{ width: 300, margin: 2, cursor: !!requisicoes?.length && 'pointer' }}
+      >
+        {requisicoes?.length > 0 && <Chip sx={{ position: 'absolute', top: '0px', right: '0px', backgroundColor: '#1976d2', color: 'white', fontWeight: 'bold' }} label={requisicoes.length} />}
         <CardActionArea>
           <CardMedia
             component="img"
             height="250"
-            // src={images[0]}
+            src={imagens[0] ? `data:image/jpeg;base64,${imagens[0].binario}` : ''}
             style={{
               display: 'block',
               marginLeft: 'auto',
@@ -33,7 +38,7 @@ export function MovelCard({ item: { titulo, descricao }, withAction, user }) {
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Chip sx={{ mt: 1, ml: 'auto' }} label={
                 <Typography variant="body2" color="text.secondary" align="right" sx={{ fontWeight: 'bold' }} >
-                  {`${'teste'} - ${'teste'}`}
+                  {`${cidade} - ${estado}`}
                 </Typography>
               } />
             </Box>

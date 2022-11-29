@@ -12,18 +12,28 @@ export function Register() {
   const navigate = useNavigate()
 
   function handleChange({ target }) {
-    setUser({ ...user, [target.name]: target.value })
+    let value = target.value
+
+    if (target.name === 'telefone') {
+      value = value.replace(/\D/g, '')
+      value = value.replace(/(\d{2})(\d)/, "($1) $2")
+      value = value.replace(/(\d)(\d{4})$/, "$1-$2")
+    }
+
+    setUser({ ...user, [target.name]: value })
   }
 
   async function handleSubmit(event) {
     event.preventDefault()
     try {
-      await createUser(user)
+      const response = await createUser(user)
+      localStorage.setItem('userId', response.data.id)
 
       toast.success('Usuário Criado!')
-      navigate('/app')
+      navigate('/')
     } catch (error) {
-
+      console.log(error);
+      toast.error('Algo deu Errado!')
     }
   }
 
@@ -81,6 +91,7 @@ export function Register() {
           label="Telefone"
           name="telefone"
           autoComplete="telefone"
+          inputProps={{ maxLength: 15 }}
         />
         <TextField
           value={user.senha}

@@ -16,78 +16,14 @@ import { useEffect, useState } from 'react';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SearchIcon from '@mui/icons-material/Search';
 import { AccountCircle } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { MovelCard } from './components/MovelCard/MovelCard';
 import './App.css'
 import { http } from './api/api';
 import { Toaster } from 'react-hot-toast';
-
-const itemsArray = [
-  {
-    name: 'Cadeira',
-    images: [cadeira, cadeira, cadeira],
-    city: 'Canoas',
-    uf: 'RS',
-    description: 'Móvel bem conservado, disponível para retirada em Canoas, pretendo doar o imóvel o mais rápido possível'
-  },
-  {
-    name: 'Mesa',
-    images: [mesa, mesa, mesa],
-    city: 'Canoas',
-    uf: 'RS',
-    description: 'Móvel bem conservado, disponível para retirada em Canoas, pretendo doar o imóvel o mais rápido possível'
-  },
-  {
-    name: 'Cadeira',
-    images: [cadeira, cadeira, cadeira],
-    city: 'Canoas',
-    uf: 'RS',
-    description: 'Móvel bem conservado, disponível para retirada em Canoas, pretendo doar o imóvel o mais rápido possível'
-  },
-  {
-    name: 'Mesa',
-    images: [mesa, mesa, mesa],
-    city: 'Canoas',
-    uf: 'RS',
-    description: 'Móvel bem conservado, disponível para retirada em Canoas, pretendo doar o imóvel o mais rápido possível'
-  },
-  {
-    name: 'Cadeira',
-    images: [cadeira, cadeira, cadeira],
-    city: 'Canoas',
-    uf: 'RS',
-    description: 'Móvel bem conservado, disponível para retirada em Canoas, pretendo doar o imóvel o mais rápido possível'
-  },
-  {
-    name: 'Mesa',
-    images: [mesa, mesa, mesa],
-    city: 'Canoas',
-    uf: 'RS',
-    description: 'Móvel bem conservado, disponível para retirada em Canoas, pretendo doar o imóvel o mais rápido possível'
-  },
-  {
-    name: 'Cadeira',
-    images: [cadeira, cadeira, cadeira],
-    city: 'Canoas',
-    uf: 'RS',
-    description: 'Móvel bem conservado, disponível para retirada em Canoas, pretendo doar o imóvel o mais rápido possível'
-  },
-  {
-    name: 'Mesa',
-    images: [mesa, mesa, mesa],
-    city: 'Canoas',
-    uf: 'RS',
-    description: 'Móvel bem conservado, disponível para retirada em Canoas, pretendo doar o imóvel o mais rápido possível'
-  },
-
-]
-
-const RSCityList = [
-  'Canoas',
-  'Porto Alegre',
-  'Gravataí'
-]
-
+import { useLoading } from './components/Loader/LoadingContext';
+import { Loader } from './components/Loader/Loader';
+import Logo from './assets/images/mobdonate.png'
 
 
 const Search = styled('div')(({ theme }) => ({
@@ -130,7 +66,7 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
   justifyContent: 'center',
 }));
 
-function Filters({ cityFilter, setCityFilter }) {
+function Filters({ cityFilter, setCityFilter, allCities }) {
   const handleChangeCity = (event) => {
     const {
       target: { value },
@@ -165,7 +101,6 @@ function Filters({ cityFilter, setCityFilter }) {
             onChange={handleChangeCity}
             input={<OutlinedInput className='filter-city' label="Tag" sx={{ display: 'flex', '.filter-city > .MuiSelect-select': { display: 'flex' } }} />}
             renderValue={(selected) => {
-              console.log(selected)
               return selected.map(city => <Box>
                 <Chip sx={{ mt: 1 }} label={
                   <Typography variant="body2" color="text.secondary" align="right" sx={{ fontWeight: 'bold' }} >
@@ -175,8 +110,8 @@ function Filters({ cityFilter, setCityFilter }) {
               </Box>)
             }}
           >
-            {RSCityList.map((city) => (
-              <MenuItem key={city} value={city}>
+            {allCities.map((city, index) => (
+              <MenuItem key={`${city}${index}`} value={city}>
                 <Checkbox checked={cityFilter.indexOf(city) > -1} />
                 <ListItemText primary={city} />
               </MenuItem>
@@ -195,9 +130,12 @@ const drawerWidth = 300;
 function App(props) {
   const { window } = props;
   const { getDonations } = http()
+  const navigate = useNavigate()
+  const { loading, setLoading } = useLoading();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [cityFilter, setCityFilter] = useState(RSCityList);
+  const [cityFilter, setCityFilter] = useState([]);
+  const [allCities, setAllCities] = useState([]);
   const [items, setItems] = useState([]);
 
 
@@ -209,23 +147,31 @@ function App(props) {
     setMobileOpen(!mobileOpen);
   };
 
-  async function fetchDonations() {
-    const response = await getDonations()
-
-    setItems(response.data)
+  function logout() {
+    localStorage.removeItem('userId')
+    navigate('login')
   }
 
+  async function fetchDonations() {
+    setLoading(true)
+    const response = await getDonations()
+
+    setItems(response.data.content.map(item => ({ ...item.doacao, imagens: item.imagens })))
+    setAllCities([...new Set(response.data.content.map(item => item.doacao.cidade))])
+    setCityFilter([...new Set(response.data.content.map(item => item.doacao.cidade))])
+    setLoading(false)
+  }
 
   const container = window !== undefined ? () => window().document.body : undefined;
 
   return (
     <>
+      {loading && <Loader />}
       <Toaster
         position="top-center"
         reverseOrder={false}
       />
       <Box sx={{ display: 'flex' }}>
-        {/* <CssBaseline /> */}
         <AppBar
           position="fixed"
           sx={{
@@ -248,9 +194,11 @@ function App(props) {
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" noWrap component="div" sx={{ overflow: 'unset' }} >
+            {/* <Typography variant="h6" noWrap component="div" sx={{ overflow: 'unset' }} >
               Móveis dus guri
-            </Typography>
+            </Typography> */}
+            <img src={Logo} alt='logo app' style={{ width: '200px' }} />
+
             <Search>
               <SearchIconWrapper>
                 <SearchIcon />
@@ -262,22 +210,24 @@ function App(props) {
                 inputProps={{ 'aria-label': 'search' }}
               />
             </Search>
-            <Link to='/profile' style={{ textDecoration: 'none', color: 'white' }}>
+            {localStorage.getItem('userId') && <>
+              <Link to='/profile' style={{ textDecoration: 'none', color: 'white' }}>
+                <IconButton
+                  color="inherit"
+                  edge="end"
+                  size='large'
+                  onClick={handleDrawerToggle}
+                >
+                  <AccountCircle />
+                </IconButton>
+              </Link>
+            </>}
+            <Link to='/login' style={{ textDecoration: 'none', color: 'white' }}>
               <IconButton
                 color="inherit"
                 edge="end"
                 size='large'
-                onClick={handleDrawerToggle}
-              >
-                <AccountCircle />
-              </IconButton>
-            </Link>
-            <Link to='/' style={{ textDecoration: 'none', color: 'white' }}>
-              <IconButton
-                color="inherit"
-                edge="end"
-                size='large'
-                onClick={handleDrawerToggle}
+                onClick={logout}
               >
                 <LogoutIcon />
               </IconButton>
@@ -303,7 +253,7 @@ function App(props) {
               '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
             }}
           >
-            <Filters cityFilter={cityFilter} setCityFilter={setCityFilter} />
+            <Filters cityFilter={cityFilter} setCityFilter={setCityFilter} allCities={allCities} />
           </Drawer>
           <Drawer
             variant="permanent"
@@ -313,7 +263,7 @@ function App(props) {
             }}
             open
           >
-            <Filters cityFilter={cityFilter} setCityFilter={setCityFilter} />
+            <Filters cityFilter={cityFilter} setCityFilter={setCityFilter} allCities={allCities} />
           </Drawer>
         </Box>
         <Box
@@ -323,7 +273,8 @@ function App(props) {
           <Toolbar />
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-evenly' }}>
             {items.filter(item => {
-              return item.titulo.toLowerCase().includes(search)
+              console.log(item);
+              return item?.titulo?.toLowerCase().includes(search) && cityFilter.includes(item.cidade)
               // && cityFilter.includes(item.city)
             }).map(item => <MovelCard item={item} withAction />)}
           </div>

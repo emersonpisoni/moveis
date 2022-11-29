@@ -1,17 +1,25 @@
 import { AppBar, Box, Button, Card, CardActionArea, CardContent, CardMedia, Chip, Divider, IconButton, TextField, Toolbar, Typography } from "@mui/material"
-import { Link, useLocation } from "react-router-dom"
+import LogoutIcon from '@mui/icons-material/Logout';
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import SearchIcon from '@mui/icons-material/Search';
 import { AccountCircle } from "@mui/icons-material";
 import Carousel from 'react-material-ui-carousel'
 import { useEffect, useState } from "react";
 import { http } from "../../api/api";
+import { Loader } from "../../components/Loader/Loader";
+import { useLoading } from "../../components/Loader/LoadingContext";
+import { toast, Toaster } from "react-hot-toast";
+import Logo from '../../assets/images/mobdonate.png'
 
 const drawerWidth = 240;
 
 export function Detail() {
   const { postRequisicao } = http()
+  const { loading, setLoading } = useLoading();
+  const navigate = useNavigate()
+
   const location = useLocation()
-  const { props: { titulo, descricao } } = location.state
+  const { props: { titulo, descricao, imagens, id, cidade, estado } } = location.state
   const [form, setForm] = useState({
     nome: '',
     email: '',
@@ -19,33 +27,50 @@ export function Detail() {
     mensagem: 'Olá, tenho interesse no móvel. Por favor entre em contato.'
   })
 
-  // useEffect(() => {
-  //   fetchRequisicao()
-  // }, [])
-
   async function fetchRequisicao() {
+    setLoading(true)
     try {
       const bodyRequisicao = {
-        "doacaoId": "ac1e4d43-f247-463a-a091-e1fb4330b439",
-        "status": 1,
-        "nomeRequisitante": "Alfredo",
-        "emailRequisitante": "alfredo@gmail.com.br",
-        "telefoneRequisitante": "392849349"
+        "doacaoId": id,
+        "nomeRequisitante": form.nome,
+        "emailRequisitante": form.email,
+        "telefoneRequisitante": form.telefone,
+        mensagem: form.mensagem
       }
-      const response = await postRequisicao(bodyRequisicao)
-      console.log(response)
+      await postRequisicao(bodyRequisicao)
     } catch (error) {
 
     }
+    setLoading(false)
+    setForm({
+      nome: '',
+      email: '',
+      telefone: '',
+      mensagem: 'Olá, tenho interesse no móvel. Por favor entre em contato.'
+    })
+    toast.success('Requisição enviada, Aguarde contato do doador, Obrigado!')
   }
 
-
   function handleFormChange({ target: { value, name } }) {
-    setForm({ ...form, [name]: value })
+    let newValue = value
+
+    if (name === 'telefone') {
+      newValue = newValue.replace(/\D/g, '')
+      newValue = newValue.replace(/(\d{2})(\d)/, "($1) $2")
+      newValue = newValue.replace(/(\d)(\d{4})$/, "$1-$2")
+    }
+
+    setForm({ ...form, [name]: newValue })
+  }
+  function logout() {
+    localStorage.removeItem('userId')
+    navigate('login')
   }
 
   return (
     <Box sx={{ display: 'flex' }}>
+      {loading && <Loader />}
+      <Toaster />
       {/* <CssBaseline /> */}
       <AppBar
         position="fixed"
@@ -60,12 +85,10 @@ export function Detail() {
           color="inherit"
           aria-label="menu"
           sx={{ mr: 2, display: 'flex', justifyContent: 'space-between' }}>
-          <Link to={'/app'} style={{ textDecoration: 'none', color: 'white' }}>
-            <Typography variant="h6" noWrap component="div" sx={{ overflow: 'unset' }} >
-              Móveis dus guri
-            </Typography>
+          <Link to={'/'} style={{ textDecoration: 'none', color: 'white' }}>
+            <img src={Logo} alt='logo detail' style={{ width: '200px' }} />
           </Link>
-          <Link to={'/profile'} style={{ textDecoration: 'none', color: 'white' }}>
+          {localStorage.getItem('userId') && <> <Link to='/profile' style={{ textDecoration: 'none', color: 'white' }}>
             <IconButton
               color="inherit"
               edge="end"
@@ -74,6 +97,17 @@ export function Detail() {
               <AccountCircle />
             </IconButton>
           </Link>
+            <Link to='/login' style={{ textDecoration: 'none', color: 'white' }}>
+              <IconButton
+                color="inherit"
+                edge="end"
+                size='large'
+                onClick={logout}
+              >
+                <LogoutIcon />
+              </IconButton>
+            </Link>
+          </>}
         </Toolbar>
       </AppBar>
       <Box
@@ -84,10 +118,10 @@ export function Detail() {
         <div style={{ display: 'flex' }}>
           <Card sx={{ width: '100%', margin: 2 }}>
             <Carousel sx={{ margin: 5 }} navButtonsAlwaysVisible animation="slide">
-              {[].map(image => <CardMedia
+              {imagens.map(image => <CardMedia
                 component="img"
                 height="250"
-                src={image}
+                src={`data:image/jpeg;base64,${image.binario}`}
                 style={{
                   display: 'block',
                   marginLeft: 'auto',
@@ -109,7 +143,7 @@ export function Detail() {
               <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Chip sx={{ mt: 1, ml: 'auto' }} label={
                   <Typography variant="body2" color="text.secondary" align="right" sx={{ fontWeight: 'bold' }} >
-                    {`${'city'} - ${'uf'}`}
+                    {`${cidade} - ${estado}`}
                   </Typography>
                 } />
               </Box>
@@ -121,7 +155,7 @@ export function Detail() {
             </Typography>
             <TextField label="Nome" name='nome' value={form.nome} onChange={handleFormChange} variant="outlined" sx={{ width: '100%' }} />
             <TextField label="email" name='email' value={form.email} onChange={handleFormChange} variant="outlined" sx={{ width: '100%' }} />
-            <TextField label="telefone" name='telefone' value={form.telefone} onChange={handleFormChange} variant="outlined" sx={{ width: '100%' }} />
+            <TextField label="telefone" name='telefone' value={form.telefone} onChange={handleFormChange} variant="outlined" sx={{ width: '100%' }} inputProps={{ maxLength: 15 }} />
             <TextField label="Mensagem" name='mensagem' value={form.mensagem} onChange={handleFormChange} variant="outlined" multiline rows={4} sx={{ width: '100%' }} />
             <Button onClick={fetchRequisicao} variant="contained" sx={{ width: '100%' }}>
               Enviar Mensagem
