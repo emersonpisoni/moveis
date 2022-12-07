@@ -24,7 +24,7 @@ import { Loader } from '../../components/Loader/Loader';
 import { useLoading } from '../../components/Loader/LoadingContext';
 
 export function Profile() {
-  const { getUserById, getDonationByUser, postDonation, getCategories, getStatus, getConservations, getItens, getDonationById, getRequisicao } = http()
+  const { getUserById, getDonationByUser, postDonation, getCategories, getStatus, getConservations, getItens, deleteDonation, getRequisicao } = http()
   const { loading, setLoading } = useLoading();
   const navigate = useNavigate()
 
@@ -40,6 +40,8 @@ export function Profile() {
   const [categoryItens, setCategoryItens] = useState([])
   const [requisitions, setRequisitions] = useState([])
   const [openRequisitions, setOpenRequisitions] = useState(false)
+  const [donationToBeDeleted, setDonationToBeDeleted] = useState({})
+  const [openDeleteDonation, setOpenDeleteDonation] = useState(false)
   const [pagination, setPagination] = useState();
 
   useEffect(() => {
@@ -140,6 +142,19 @@ export function Profile() {
     setLoading(false)
   }
 
+  async function fetchDeleteDonation(donationId) {
+    setLoading(true)
+
+    try {
+      await deleteDonation(donationId)
+      fetchDonation()
+    } catch (error) {
+      console.log(error)
+    }
+    setLoading(false)
+    setOpenDeleteDonation(false)
+  }
+
   const onImageChange = (event) => {
     setImages(event.target.files)
   }
@@ -151,6 +166,14 @@ export function Profile() {
   function requisitionsCallback(requisitions) {
     setRequisitions(requisitions)
     setOpenRequisitions(true)
+  }
+
+  function deleteCallback(donationId, donationTitle) {
+    setDonationToBeDeleted({
+      id: donationId,
+      title: donationTitle
+    })
+    setOpenDeleteDonation(true)
   }
 
   function logout() {
@@ -231,7 +254,7 @@ export function Profile() {
                 Meus anúncios
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                {donations.map(item => <MovelCard item={item} requisitionsCallback={requisitionsCallback} />)}
+                {donations.map(item => <MovelCard item={item} requisitionsCallback={requisitions.length > 0 && requisitionsCallback} deleteCallback={deleteCallback} />)}
                 {/* <MovelCard item={{ titulo: 'fe', descricao: 'fef', images: [image] }} /> */}
               </Box>
               <Button onClick={() => setShowCreateDonation(true)} variant='contained' sx={{ position: 'absolute', top: 10, right: 10 }}>
@@ -276,7 +299,7 @@ export function Profile() {
               </Typography>
               <Box sx={{ display: 'flex', position: 'relative', width: '800px', padding: '10px', margin: 0, justifyContent: 'center', alignItems: 'center' }}>
                 <Carousel sx={{ margin: 1, width: '100%' }} height='500px' navButtonsAlwaysVisible autoPlay={false} animation="slide">
-                  {[...requisitions, ...requisitions].map(req => {
+                  {requisitions.map(req => {
                     return (
                       <Paper sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', margin: '0 70px' }}>
                         <TextField
@@ -325,6 +348,29 @@ export function Profile() {
                     )
                   })}
                 </Carousel>
+              </Box>
+            </Paper>
+          </Box>
+        }
+        {openDeleteDonation &&
+          <Box sx={{ position: 'fixed', width: '100%', height: '100vh', backgroundColor: '#00000085', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Paper sx={{ padding: '20px', position: 'relative' }}>
+              <Button onClick={() => setOpenDeleteDonation(false)} variant='contained' sx={{ position: 'absolute', top: -10, right: -10, minWidth: 20, height: 20, padding: 2, backgroundColor: 'red' }}>
+                X
+              </Button>
+              <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 'bold', m: 1 }}>
+                Requisições
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', position: 'relative', width: '800px', padding: '10px', margin: 0, justifyContent: 'center', alignItems: 'center' }}>
+                Você quer deletar o item {donationToBeDeleted.title}?
+                <Box>
+                  <Button onClick={() => fetchDeleteDonation(donationToBeDeleted.id)}>
+                    Sim
+                  </Button>
+                  <Button onClick={() => setOpenDeleteDonation(false)}>
+                    Não
+                  </Button>
+                </Box>
               </Box>
             </Paper>
           </Box>

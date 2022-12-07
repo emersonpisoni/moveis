@@ -5795,6 +5795,10 @@ export function http() {
     return await axios.get(`${base_url}/requisicao/pessoa/${userId}`)
   }
 
+  async function deleteDonation(donationId) {
+    return await axios.delete(`${base_url}/doacao/${donationId}`)
+  }
+
   async function postRequisicao({ doacaoId, nomeRequisitante, emailRequisitante, telefoneRequisitante, mensagem }) {
     return await axios.post(`${base_url}/requisicao`, {
       doacaoId,
@@ -5846,6 +5850,7 @@ export function http() {
 
   return {
     createUser,
+    deleteDonation,
     getDonations,
     getUserById,
     postRequisicao,

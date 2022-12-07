@@ -49,6 +49,7 @@ export function Register() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
+        justifyContent: 'center'
       }}
     >
       <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
@@ -57,7 +58,7 @@ export function Register() {
       <Typography component="h1" variant="h5">
         Criar Usuário
       </Typography>
-      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '400px' }}>
         <TextField
           value={user.nome}
           onChange={handleChange}
@@ -115,6 +116,9 @@ export function Register() {
         >
           Criar Usuário
         </Button>
+        <Link to='/login'>
+          voltar para login
+        </Link>
         {/* </Link> */}
       </Box>
     </Box>

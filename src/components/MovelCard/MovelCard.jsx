@@ -1,7 +1,7 @@
-import { Box, Card, CardActionArea, CardContent, CardMedia, Chip, Divider, Typography } from "@mui/material";
+import { Box, Button, Card, CardActionArea, CardContent, CardMedia, Chip, Divider, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 
-export function MovelCard({ item: { titulo, descricao, imagens = [], id, requisicoes, cidade, estado }, withAction, requisitionsCallback, user }) {
+export function MovelCard({ item: { titulo, descricao, imagens = [], id, requisicoes, cidade, estado }, withAction, requisitionsCallback, user, deleteCallback }) {
   return (
     <Link
       to={withAction ? '/detail' : '#'}
@@ -14,6 +14,9 @@ export function MovelCard({ item: { titulo, descricao, imagens = [], id, requisi
         sx={{ width: 300, margin: 2, cursor: !!requisicoes?.length && 'pointer' }}
       >
         {requisicoes?.length > 0 && <Chip sx={{ position: 'absolute', top: '0px', right: '0px', backgroundColor: '#1976d2', color: 'white', fontWeight: 'bold' }} label={requisicoes.length} />}
+        {deleteCallback && <Button onClick={() => deleteCallback(id, titulo)} variant='contained' sx={{ position: 'absolute', top: '0px', left: '0px', backgroundColor: 'red', color: 'white', fontWeight: 'bold', padding: 0 }}>
+          X
+        </Button>}
         <CardActionArea>
           <CardMedia
             component="img"
